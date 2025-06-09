@@ -22,6 +22,11 @@
           <v-card-title class="text-h6 font-weight-regular">
             {{ movie.title }}
           </v-card-title>
+          <v-img
+            :src="movie.poster"
+            height="200px"
+            class="mb-2"
+            contain></v-img>
           <v-card-subtitle class="text-body-2 grey--text">
             {{ new Date(movie.released).getFullYear() }}
           </v-card-subtitle>
