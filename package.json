@@ -7,15 +7,29 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "seed:json": "node scripts/seed.mjs scripts/seed-user.mjs",
+    "db:start": "docker run -d --name mongodb -p 27017:27017 mongo:latest",
+    "db:stop": "docker stop mongodb && docker rm mongodb"
   },
   "dependencies": {
     "@pinia/nuxt": "^0.11.0",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^16.5.0",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "8.9.5",
     "nuxt": "3.16.0",
-    "vue": "latest",
+    "pinia": "^3.0.3",
+    "vue": "^3.3.0",
     "vuetify-nuxt-module": "^0.16.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.10"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }

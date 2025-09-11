@@ -7,6 +7,7 @@ export default defineNuxtConfig({
 
   // Modules
   modules: [
+    '@pinia/nuxt',
     'vuetify-nuxt-module',
   ],
 
@@ -16,8 +17,10 @@ export default defineNuxtConfig({
     plugins: ['~/server/utils/database.ts'],
     // Avoid bundling large native deps, load at runtime
     externals: {
-      inline: ['mongodb', 'bcrypt', 'jsonwebtoken']
+      external: ['bcrypt'],
+      inline: ['mongodb', 'jsonwebtoken']
     },
+    moduleSideEffects: ['bcrypt']
   },
 
   // Runtime configuration

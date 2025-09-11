@@ -19,6 +19,9 @@ export default defineNitroPlugin(async (nitroApp) => {
   db = client.db(name)
   console.log(`✅ MongoDB connected to database “${name}”`)
 
+  // Create indexes for users collection
+  await db.collection('users').createIndex({ email: 1 }, { unique: true })
+
   nitroApp.hooks.hook('close', async () => {
     await client.close()
     console.log('🔌 MongoDB connection closed')

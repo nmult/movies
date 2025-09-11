@@ -2,6 +2,14 @@ import { defineEventHandler, readBody, createError, sendError } from 'h3';
 import { getDb } from '~/server/utils/database';
 
 export default defineEventHandler(async (event) => {
+  // Check if user is authenticated and has admin role
+  if (!event.context.auth || event.context.auth.role !== 'admin') {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Forbidden: Admin access required'
+    })
+  }
+
   const body = await readBody(event);
   const { title, plot, genres, runtime, cast, released, directors, writers } = body;
   if (!title || !plot) {
