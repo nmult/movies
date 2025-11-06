@@ -13,8 +13,8 @@ build_image:
     - docker:26-dind
   script:
     - echo ">>> Docker login to GitLab Registry"
-    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin $CI_REGISTRY   
-      - echo ">>> Build docker image"
+    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo ">>> Build docker image"
     - docker build -t "$IMAGE_NAME:latest" .
     - echo ">>> Push docker image"
     - docker push "$IMAGE_NAME:latest"
