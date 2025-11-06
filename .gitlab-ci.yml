@@ -1,0 +1,20 @@
+stages:
+  - build
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+build_image:
+  stage: build
+  image: docker:26
+  services:
+    - docker:26-dind
+  script:
+    - echo ">>> Docker login to GitLab Registry"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - echo ">>> Build docker image"
+    - docker build -t "$CI_REGISTRY_IMAGE:latest" .
+    - echo ">>> Push docker image"
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+  only:
+    - main
