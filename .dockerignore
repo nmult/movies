@@ -1,0 +1,15 @@
+.git
+node_modules
+.nuxt
+.output
+*.log
+.gitlab
+.idea
+.vscode
+.DS_Store
+.pnp.cjs
+.pnp.loader.mjs
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
