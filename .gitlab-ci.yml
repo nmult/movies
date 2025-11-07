@@ -3,7 +3,7 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
-  IMAGE_NAME: $CI_REGISTRY/$CI_PROJECT_NAME:$IMAGE_TAG
+  IMAGE_NAME: $CI_REGISTRY/$CI_PROJECT_NAME
 
 build_image:
   stage: build
