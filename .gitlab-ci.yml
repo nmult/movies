@@ -3,7 +3,7 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
-  IMAGE_NAME: $CI_REGISTRY_IMAGE
+  IMAGE_NAME: $CI_REGISTRY/$CI_PROJECT_NAME:$IMAGE_TAG
 
 build_image:
   stage: build
@@ -12,6 +12,7 @@ build_image:
     - echo ">>> Docker login to GitLab Registry"
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo ">>> Build docker image"
+    - echo $CI_REGISTRY/$CI_PROJECT_NAME:$IMAGE_TAG
     - docker build -t "$IMAGE_NAME:latest" .
     - echo ">>> Push docker image"
     - docker push "$IMAGE_NAME:latest"
