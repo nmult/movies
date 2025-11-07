@@ -3,14 +3,14 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
-  IMAGE_NAME: $CI_REGISTRY_IMAGE
+  IMAGE_NAME: docker.io/$DOCKERHUB_USER/mentoring
 
 build_image:
   stage: build
   image: docker:26
   script:
     - echo ">>> Docker login to GitLab Registry"
-    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
     - echo ">>> Build docker image"
     - docker build -t "$IMAGE_NAME:latest" .
     - echo ">>> Push docker image"
