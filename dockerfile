@@ -2,8 +2,11 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
-# enable corepack
-COPY package.json yarn.lock ./
+# Copy package manager configuration
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn/releases ./.yarn/releases
+
+# enable corepack and install dependencies
 RUN corepack enable
 RUN yarn install --immutable
 
