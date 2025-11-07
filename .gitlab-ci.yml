@@ -3,14 +3,11 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
-  CI_REGISTRY: registry.gitlab.com
   IMAGE_NAME: $CI_REGISTRY_IMAGE
 
 build_image:
   stage: build
   image: docker:26
-  services:
-    - docker:26-dind
   script:
     - echo ">>> Docker login to GitLab Registry"
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin $CI_REGISTRY
