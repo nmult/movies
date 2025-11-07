@@ -4,7 +4,6 @@ WORKDIR /app
 
 # Copy package manager configuration
 COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn/releases ./.yarn/releases
 
 # enable corepack and install dependencies
 RUN corepack enable
