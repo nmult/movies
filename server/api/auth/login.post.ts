@@ -1,43 +1,40 @@
-import { defineEventHandler, readBody, createError } from 'h3'
-import { getDb } from '@/server/utils/database'
+import { defineEventHandler, readBody, createError, sendError } from 'h3'
+import { useSupabaseAdmin } from '~/server/utils/supabase'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { email, password } = body
-
   if (!email || !password) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Email and password are required'
-    })
+    return sendError(event, createError({ statusCode: 400, statusMessage: 'Email and password required' }))
   }
 
-  const db = getDb()
-  const usersCollection = db.collection('users')
+  const supabase = useSupabaseAdmin()
+  const { data: users, error } = await supabase
+    .from('users')
+    .select('id, email, password, role')
+    .eq('email', email)
+    .limit(1)
 
-  const user = await usersCollection.findOne({ email })
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+  const user = users?.[0]
   if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Invalid credentials'
-    })
+    return sendError(event, createError({ statusCode: 401, statusMessage: 'Invalid credentials' }))
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password)
-  if (!isPasswordValid) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Invalid credentials'
-    })
+  const ok = await bcrypt.compare(password, user.password)
+  if (!ok) {
+    return sendError(event, createError({ statusCode: 401, statusMessage: 'Invalid credentials' }))
   }
 
   const token = jwt.sign(
-    { userId: user._id, email: user.email, role: user.role },
-    process.env.JWT_SECRET as string,
-    { expiresIn: '1h' }
+    { id: user.id, email: user.email, role: user.role },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: '7d' }
   )
 
-  return { token, user: { email: user.email, role: user.role, name: user.name } }
+  return { token, user: { id: user.id, email: user.email, role: user.role } }
 })

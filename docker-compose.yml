@@ -1,13 +1,14 @@
 services:
-  mongodb:
-    image: mongo:6
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
     ports:
-      - 27017:27017
+      - "3000:3000"
+    env_file:
+      - .env
     environment:
-      MONGO_INITDB_DATABASE: movies
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000

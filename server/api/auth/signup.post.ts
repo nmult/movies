@@ -1,58 +1,45 @@
-import { defineEventHandler, readBody, createError } from 'h3'
-import { getDb } from '@/server/utils/database'
-import bcrypt from 'bcryptjs'
+import { defineEventHandler, readBody, createError, sendError } from 'h3'
+import { useSupabaseAdmin } from '~/server/utils/supabase'
+import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { name, username, email, password, role = 'user' } = body
+  const { email, password, role = 'user' } = body
 
-  // Accept either name or username for backward compatibility
-  const userName = username || name
-
-  if (!userName || !email || !password) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Username, email and password are required'
-    })
+  if (!email || !password) {
+    return sendError(event, createError({ statusCode: 400, statusMessage: 'Email and password required' }))
   }
 
-  const db = getDb()
-  const usersCollection = db.collection('users')
+  const supabase = useSupabaseAdmin()
+  const hashed = await bcrypt.hash(password, 10)
 
-  // Check for existing user by email or username
-  const existingUser = await usersCollection.findOne({
-    $or: [{ email }, { username: userName }]
-  })
+  // Check existing user
+  const { data: existing, error: existingErr } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .limit(1)
 
-  if (existingUser) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'User with this email or username already exists'
-    })
+  if (existingErr) {
+    throw createError({ statusCode: 500, statusMessage: existingErr.message })
+  }
+  if (existing && existing.length) {
+    return sendError(event, createError({ statusCode: 409, statusMessage: 'User already exists' }))
   }
 
-  const hashedPassword = await bcrypt.hash(password, 12)
-  const newUser = {
-    username: userName,
-    name: userName,
-    email,
-    password: hashedPassword,
-    role,
-    createdAt: new Date(),
-    updatedAt: new Date()
+  const { data: created, error } = await supabase
+    .from('users')
+    .insert({ email, password: hashed, role })
+    .select('id, email, role')
+    .single()
+
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
   }
 
-  const result = await usersCollection.insertOne(newUser)
-
-  // Generate JWT token
   const token = jwt.sign(
-    {
-      id: result.insertedId.toString(),
-      email: newUser.email,
-      username: newUser.username,
-      role: newUser.role
-    },
+    { id: created.id, email: created.email, role: created.role },
     process.env.JWT_SECRET || 'your-secret-key',
     { expiresIn: '7d' }
   )
@@ -60,12 +47,6 @@ export default defineEventHandler(async (event) => {
   return {
     message: 'User signed up successfully',
     token,
-    user: {
-      id: result.insertedId.toString(),
-      username: newUser.username,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role
-    }
+    user: created
   }
 })

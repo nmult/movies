@@ -1,18 +1,19 @@
 import { defineEventHandler,  getQuery } from 'h3';
-import { getDb } from '~/server/utils/database';
+import { useSupabaseAdmin } from '~/server/utils/supabase';
 
 export default defineEventHandler(async (event) => {
   const queryParams = getQuery(event);
   const search = Array.isArray(queryParams.search) ? queryParams.search[0] : queryParams.search;
-  const db = getDb();
+  const supabase = useSupabaseAdmin();
 
-  const query = search
-    ? { title: { $regex: new RegExp(search, 'i') } } // case-insensitive title search
-    : {};
-
-  return db.collection('movies')
-    .find(query)
-    .sort({ createdAt: -1 })
-    .limit(20)      // ← return only the first 20
-    .toArray();
+  let req = supabase.from('movies').select('*').order('created_at', { ascending: false }).limit(20);
+  if (search) {
+    // Use ilike for case-insensitive match on title
+    req = req.ilike('title', `%${search}%`);
+  }
+  const { data, error } = await req;
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+  return data ?? [];
 });

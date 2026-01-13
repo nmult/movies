@@ -13,12 +13,12 @@ export default defineNuxtConfig({
 
   // Nitro configuration
   nitro: {
-    // Register our DB plugin
-    plugins: ['~/server/utils/database.ts'],
+    // Remove MongoDB plugin; Supabase client is stateless and needs no plugin
+    plugins: [],
     // Avoid bundling large native deps, load at runtime
     externals: {
       external: ['bcrypt'],
-      inline: ['mongodb', 'jsonwebtoken']
+      inline: ['jsonwebtoken']
     },
     moduleSideEffects: ['bcrypt']
   },
@@ -26,10 +26,16 @@ export default defineNuxtConfig({
   // Runtime configuration
   runtimeConfig: {
     apiSecret: {
+      // Keep existing to avoid type errors; service key read directly from env in code
       MONGO_URL: process.env.MONGO_URL,
       DB_NAME:   process.env.DB_NAME
     },
-    public: { apiBase: '/api' }
+    public: {
+      apiBase: '/api',
+      // Supabase URL and anon key for client/server usage
+      SUPABASE_URL: process.env.SUPABASE_URL,
+      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY
+    }
   },
 
   // TypeScript settings
