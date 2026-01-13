@@ -3,17 +3,21 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
   IMAGE_NAME: docker.io/$DOCKERHUB_USER/mentoring
 
 build_image:
   stage: build
   image: docker:26
-  script:
-    - echo ">>> Docker login to GitLab Registry"
+  services:
+    - docker:26-dind
+  before_script:
+    - until docker info; do sleep 1; done
     - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
-    - echo ">>> Build docker image"
-    - docker build --platform=linux/amd64 -t "$IMAGE_NAME:latest" .
-    - echo ">>> Push docker image"
+  script:
+    - docker build --platform=linux/amd64 -t "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" .
+    - docker tag "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" "$IMAGE_NAME:latest"
+    - docker push "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
     - docker push "$IMAGE_NAME:latest"
   only:
     - main
