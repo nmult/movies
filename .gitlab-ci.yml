@@ -8,20 +8,12 @@ variables:
 build_image:
   stage: build
   image: docker:26
-  services:
-    - docker:26-dind
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375
-  before_script:
-    - docker info
-    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
   script:
-    - docker buildx create --use
-    - docker buildx build
-      --platform linux/amd64
-      --tag "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
-      --tag "$IMAGE_NAME:latest"
-      --push .
+    - echo ">>> Docker login to GitLab Registry"
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
+    - echo ">>> Build docker image"
+    - docker build --platform=linux/amd64 -t "$IMAGE_NAME:latest" .
+    - echo ">>> Push docker image"
+    - docker push "$IMAGE_NAME:latest"
   only:
     - main
